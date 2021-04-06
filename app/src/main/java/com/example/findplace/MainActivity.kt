@@ -3,6 +3,8 @@ package com.example.findplace
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.location.Address
 import android.location.Geocoder
@@ -10,23 +12,31 @@ import android.media.ExifInterface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.util.Base64
+import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.FileProvider
+import com.kakao.util.maps.helper.Utility.getPackageInfo
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
-import java.io.File
+import net.daum.mf.map.api.MapPOIItem
+import net.daum.mf.map.api.MapPoint
+import net.daum.mf.map.api.MapView
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 class MainActivity : AppCompatActivity() {
     private val GET_GALLERY_IMAGE : Int = 200
-    private val photoInfoMap : HashMap<String, String> = HashMap<String, String>()
+    private lateinit var photoInfoMap : HashMap<String, String>
+    private val geoInfoMap : HashMap<String, Double> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        getHashKey()
 
         image.setOnClickListener {
             val intent : Intent = Intent(Intent.ACTION_PICK)
@@ -41,11 +51,49 @@ class MainActivity : AppCompatActivity() {
             val dlgView = View.inflate(this@MainActivity, R.layout.detail_info_layout, null)
             val dlg = AlertDialog.Builder(this@MainActivity).create()
 
-            val textDate : TextView = findViewById(R.id.photoDate)
-            val textLabel : TextView = findViewById(R.id.photoLabel)
-            val textLocation : TextView = findViewById(R.id.photoLocation)
-            val textDevice : TextView = findViewById(R.id.photoDevice)
+            dlg.setView(dlgView)
+            dlg.window.setBackgroundDrawableResource(R.drawable.block)
 
+            val textDate : TextView = dlgView.findViewById(R.id.photoDate)
+            val textLabel : TextView = dlgView.findViewById(R.id.photoLabel)
+            val textLocation : TextView = dlgView.findViewById(R.id.photoLocation)
+            val textDevice : TextView = dlgView.findViewById(R.id.photoDevice)
+
+            textDate.text = "촬영시간\r\n${photoInfoMap.get("date")}"
+            textLabel.text = "제목\r\n${photoInfoMap.get("label")}"
+            textLocation.text = "위치\r\n${photoInfoMap.get("location")}"
+            textDevice.text = "촬영기기\r\n${photoInfoMap.get("device")}"
+
+            dlg.show()
+        }
+
+        viewLocationButton.setOnClickListener {
+            if(textMain.text.equals("아래를 클릭해서 사진을 등록하세요")) {
+                Toast.makeText(this@MainActivity, "사진을 먼저 등록해주세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val dlgView = View.inflate(this@MainActivity, R.layout.map_layout, null)
+            val dlg = AlertDialog.Builder(this@MainActivity).create()
+
+            dlg.setView(dlgView)
+
+            //카카오맵 초기화
+            val mapView = MapView(this@MainActivity)
+            val mapViewContainer = dlgView.findViewById<ViewGroup>(R.id.mapViewL)
+            mapViewContainer.addView(mapView)
+
+            //위도와 경조로 중심점 설정
+            mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!), true)
+
+            //마커 설정
+            val marker : MapPOIItem = MapPOIItem()
+            marker.tag = 0
+            marker.markerType = MapPOIItem.MarkerType.BluePin
+            marker.selectedMarkerType = MapPOIItem.MarkerType.RedPin
+            mapView.addPOIItem(marker)
+
+            dlg.show()
         }
     }
 
@@ -63,7 +111,10 @@ class MainActivity : AppCompatActivity() {
                         textMain.text = exif.getAttribute(ExifInterface.TAG_MAKE) + "/" + exif.getAttribute(ExifInterface.TAG_MODEL) + "\r\n" +
                                 getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
 
-                        Toast.makeText(this@MainActivity, "Test Address : ${getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())}", Toast.LENGTH_SHORT).show()
+                        val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
+                        geoInfoMap.put("latitude", degree.getLatitude().toDouble())
+                        geoInfoMap.put("longitude", degree.getLongitude().toDouble())
+                        photoInfoMap = saveExifData(exif, address)
                     } catch (e : Exception) {
                         Toast.makeText(this@MainActivity, "Result Error", Toast.LENGTH_SHORT).show()
                         e.printStackTrace()
@@ -101,5 +152,43 @@ class MainActivity : AppCompatActivity() {
         val result = c.getString(index)
 
         return result
+    }
+
+    //Exif 정보를 HashMap에 담는 메소드
+    private fun saveExifData(exif : ExifInterface, location : String) : HashMap<String, String> {
+        val map = HashMap<String, String>()
+
+        map.put("date", exif.getAttribute(ExifInterface.TAG_DATETIME)) //날짜
+        map.put("label", exif.getAttribute(ExifInterface.TAG_ARTIST)) //작성자
+        map.put("location", location) //위치
+        map.put("device", "${exif.getAttribute(ExifInterface.TAG_MAKE)} - ${exif.getAttribute(ExifInterface.TAG_MODEL)}") //제조사와 모델명
+
+        return map
+    }
+
+    //HashKey 가져오는 메소드
+    private fun getHashKey() {
+        var packageInfo:PackageInfo? = null
+        try
+        {
+            packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES)
+        }
+        catch (e:PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
+        if (packageInfo == null)
+            Log.e("KeyHash", "KeyHash:null")
+        for (signature in packageInfo!!.signatures)
+        {
+            try
+            {
+                val md = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                Log.d("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT))
+            }
+            catch (e: NoSuchAlgorithmException) {
+                Log.e("KeyHash", "Unable to get MessageDigest. signature=" + signature, e)
+            }
+        }
     }
 }

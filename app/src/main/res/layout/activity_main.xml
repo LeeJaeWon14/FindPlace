@@ -7,8 +7,7 @@
     tools:context=".MainActivity"
     android:orientation="vertical"
     android:gravity = "center"
-    android:paddingTop="20dp"
-    android:paddingBottom="20dp">
+    android:paddingTop="20dp">
 
     <TextView
         android:id = "@+id/textMain"
@@ -21,7 +20,16 @@
     <ImageView
         android:id = "@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="520dp"
         android:src = "@drawable/ic_launcher_foreground"/>
+
+    <Button
+        android:id = "@+id/viewLocationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text = "위치보기"
+        android:background = "@drawable/block"
+        android:layout_margin="20dp"
+        android:textStyle="bold"/>
 
 </LinearLayout>
