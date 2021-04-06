@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity = "center">
+
+    <TextView
+        android:id = "@+id/photoDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:fontFamily="@font/binggrae"
+        android:text = "Date"/>
+    <TextView
+        android:id = "@+id/photoLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:fontFamily="@font/binggrae"
+        android:text = "Label"
+        android:layout_marginTop="20dp"/>
+    <TextView
+        android:id = "@+id/photoLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:fontFamily="@font/binggrae"
+        android:text = "Location"
+        android:layout_marginTop="20dp"/>
+    <TextView
+        android:id = "@+id/photoDevice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:fontFamily="@font/binggrae"
+        android:text = "Device"
+        android:layout_marginTop="20dp"/>
+</LinearLayout>
