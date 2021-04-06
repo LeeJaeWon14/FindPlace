@@ -1,4 +1,4 @@
-# FindPlace
+# FindPlace (incomplete)
   - 사진의 메타데이터(EXIF)를 기반으로 사진의 다양한 정보를 활용한 앱
   
 # Used
