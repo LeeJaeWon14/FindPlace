@@ -5,5 +5,10 @@
   ### 1. Android Studio 4.2 (API Level 28)
   ### 2. Kotlin 1.3.72
     1. ExifInterface
-    2. Retrofit2
+    2. Kakao Map API with GeoCoder
     3. Kakao Local API (예정)
+
+# Running Capture
+![image](https://user-images.githubusercontent.com/65227900/113901868-3f0f6300-980a-11eb-9353-ac7e37f31e5d.png)
+
+![image](https://user-images.githubusercontent.com/65227900/113902144-8d246680-980a-11eb-8729-5bf29f55804a.png)
