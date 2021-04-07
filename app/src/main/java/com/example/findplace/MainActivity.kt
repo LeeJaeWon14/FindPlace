@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //HashKey 가져옴
         getHashKey()
 
         image.setOnClickListener {
@@ -55,12 +56,12 @@ class MainActivity : AppCompatActivity() {
             dlg.window.setBackgroundDrawableResource(R.drawable.block)
 
             val textDate : TextView = dlgView.findViewById(R.id.photoDate)
-            val textLabel : TextView = dlgView.findViewById(R.id.photoLabel)
+            val textResolution : TextView = dlgView.findViewById(R.id.photoResolution)
             val textLocation : TextView = dlgView.findViewById(R.id.photoLocation)
             val textDevice : TextView = dlgView.findViewById(R.id.photoDevice)
 
             textDate.text = "촬영시간\r\n${photoInfoMap.get("date")}"
-            textLabel.text = "제목\r\n${photoInfoMap.get("label")}"
+            textResolution.text = "해상도\r\n${photoInfoMap.get("resolution")}"
             textLocation.text = "위치\r\n${photoInfoMap.get("location")}"
             textDevice.text = "촬영기기\r\n${photoInfoMap.get("device")}"
 
@@ -72,6 +73,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "사진을 먼저 등록해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            Toast.makeText(this@MainActivity, "실제 위치와 오차가 있을 수 있습니다.", Toast.LENGTH_SHORT).show()
 
             val dlgView = View.inflate(this@MainActivity, R.layout.map_layout, null)
             val dlg = AlertDialog.Builder(this@MainActivity).create()
@@ -148,15 +150,6 @@ class MainActivity : AppCompatActivity() {
         //위도와 경도를 매개변수로 Address 객체 반환
         val addressList : List<Address> = geo.getFromLocation(latitude, longitude, 10)
 
-        /*val buffer = StringBuffer(addressList.get(0).countryName)
-
-        if(addressList.get(0).locality == null) {
-            buffer.append(" ${addressList.get(0).subLocality}")
-        } else { buffer.append(" ${addressList.get(0).locality}") }
-        buffer.append(" ${addressList.get(0).thoroughfare}")*/
-
-        println("address >> ${addressList.get(0).getAddressLine(0).toString()}")
-
         return addressList.get(0).getAddressLine(0).toString()
     }
 
@@ -177,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         val map = HashMap<String, String>()
 
         map.put("date", exif.getAttribute(ExifInterface.TAG_DATETIME)) //날짜
-        map.put("label", exif.getAttribute(ExifInterface.TAG_ARTIST)) //작성자
+        map.put("resolution", "${exif.getAttribute(ExifInterface.TAG_PIXEL_X_DIMENSION)}x${exif.getAttribute(ExifInterface.TAG_PIXEL_Y_DIMENSION)}") //해상도
         map.put("location", location) //위치
         map.put("device", "${exif.getAttribute(ExifInterface.TAG_MAKE)}, ${exif.getAttribute(ExifInterface.TAG_MODEL)}") //제조사와 모델명
 
