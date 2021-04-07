@@ -81,17 +81,23 @@ class MainActivity : AppCompatActivity() {
             //카카오맵 초기화
             val mapView = MapView(this@MainActivity)
             val mapViewContainer = dlgView.findViewById<ViewGroup>(R.id.mapViewL)
-            mapViewContainer.addView(mapView)
-
-            //위도와 경조로 중심점 설정
-            mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!), true)
+            val mapPoint = MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!)
 
             //마커 설정
             val marker : MapPOIItem = MapPOIItem()
+            marker.itemName = "위치"
             marker.tag = 0
+            marker.mapPoint = mapPoint
             marker.markerType = MapPOIItem.MarkerType.BluePin
             marker.selectedMarkerType = MapPOIItem.MarkerType.RedPin
             mapView.addPOIItem(marker)
+
+            mapViewContainer.addView(mapView)
+            mapView.isHDMapTileEnabled = true //카카오맵의 지도 타일을 고화질 타일로 변경
+            mapView.setMapCenterPoint(mapPoint, true) //실행 애니메이션 설정
+
+            //위도와 경조로 중심점 설정
+            mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!), true)
 
             dlg.show()
         }
@@ -107,14 +113,24 @@ class MainActivity : AppCompatActivity() {
                         val selectedImageUri = data?.data!!
                         image.setImageURI(selectedImageUri)
                         val exif = ExifInterface(getAbsolutePath(selectedImageUri))
-                        val degree = GeoDegree(exif)
-                        textMain.text = exif.getAttribute(ExifInterface.TAG_MAKE) + "/" + exif.getAttribute(ExifInterface.TAG_MODEL) + "\r\n" +
-                                getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
 
-                        val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
-                        geoInfoMap.put("latitude", degree.getLatitude().toDouble())
-                        geoInfoMap.put("longitude", degree.getLongitude().toDouble())
-                        photoInfoMap = saveExifData(exif, address)
+                        //EXIF에 위치정보가 존재하지 않는 경우
+                        if(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
+                            viewLocationButton.visibility = View.INVISIBLE
+                            Toast.makeText(this@MainActivity, "위치 정보가 존재하지 않는 사진입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                        //위치정보가 존재할 경우
+                        else {
+                            viewLocationButton.visibility = View.VISIBLE
+                            val degree = GeoDegree(exif)
+                            textMain.text = "상세정보"
+
+                            val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
+                            geoInfoMap.put("latitude", degree.getLatitude().toDouble())
+                            geoInfoMap.put("longitude", degree.getLongitude().toDouble())
+                            photoInfoMap = saveExifData(exif, address)
+                        }
+
                     } catch (e : Exception) {
                         Toast.makeText(this@MainActivity, "Result Error", Toast.LENGTH_SHORT).show()
                         e.printStackTrace()
@@ -132,14 +148,16 @@ class MainActivity : AppCompatActivity() {
         //위도와 경도를 매개변수로 Address 객체 반환
         val addressList : List<Address> = geo.getFromLocation(latitude, longitude, 10)
 
-        val buffer = StringBuffer(addressList.get(0).countryName)
+        /*val buffer = StringBuffer(addressList.get(0).countryName)
 
-        buffer.append(" ${addressList.get(0).locality}")
-        //buffer.append(" ${addressList.get(0).subLocality}")
-        buffer.append(" ${addressList.get(0).thoroughfare}")
-        //buffer.append(" ${addressList.get(0).featureName}")
+        if(addressList.get(0).locality == null) {
+            buffer.append(" ${addressList.get(0).subLocality}")
+        } else { buffer.append(" ${addressList.get(0).locality}") }
+        buffer.append(" ${addressList.get(0).thoroughfare}")*/
 
-        return buffer.toString()
+        println("address >> ${addressList.get(0).getAddressLine(0).toString()}")
+
+        return addressList.get(0).getAddressLine(0).toString()
     }
 
     //Uri를 절대경로(Absolute Path)로 변환
@@ -161,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         map.put("date", exif.getAttribute(ExifInterface.TAG_DATETIME)) //날짜
         map.put("label", exif.getAttribute(ExifInterface.TAG_ARTIST)) //작성자
         map.put("location", location) //위치
-        map.put("device", "${exif.getAttribute(ExifInterface.TAG_MAKE)} - ${exif.getAttribute(ExifInterface.TAG_MODEL)}") //제조사와 모델명
+        map.put("device", "${exif.getAttribute(ExifInterface.TAG_MAKE)}, ${exif.getAttribute(ExifInterface.TAG_MODEL)}") //제조사와 모델명
 
         return map
     }
@@ -189,6 +207,18 @@ class MainActivity : AppCompatActivity() {
             catch (e: NoSuchAlgorithmException) {
                 Log.e("KeyHash", "Unable to get MessageDigest. signature=" + signature, e)
             }
+        }
+    }
+
+    //뒤로가기 두번 클릭하면 종료
+    private var time : Long = 0
+    override fun onBackPressed() {
+        if(System.currentTimeMillis() - time >= 2000) {
+            time = System.currentTimeMillis()
+            Toast.makeText(this@MainActivity, "한번 더 누르면 종료합니다", Toast.LENGTH_SHORT).show()
+        }
+        else if(System.currentTimeMillis() - time < 2000) {
+            this.finishAffinity()
         }
     }
 }
