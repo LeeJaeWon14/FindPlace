@@ -22,8 +22,9 @@
     <ImageView
         android:id = "@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
-        android:src = "@drawable/ic_launcher_foreground"/>
+        android:layout_height="wrap_content"
+        android:src = "@drawable/ic_launcher_foreground"
+        android:layout_weight="1"/>
 
     <Button
         android:id = "@+id/viewLocationButton"
@@ -32,6 +33,7 @@
         android:text = "위치보기"
         android:background = "@drawable/block"
         android:layout_margin="20dp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:layout_gravity="bottom"/>
 
 </LinearLayout>

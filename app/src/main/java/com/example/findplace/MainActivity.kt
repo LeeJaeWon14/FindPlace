@@ -1,5 +1,6 @@
 package com.example.findplace
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
@@ -19,6 +20,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.gun0912.tedpermission.PermissionListener
+import com.gun0912.tedpermission.TedPermission
 import com.kakao.util.maps.helper.Utility.getPackageInfo
 import kotlinx.android.synthetic.main.activity_main.*
 import net.daum.mf.map.api.MapPOIItem
@@ -35,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        checkPermission()
 
         //HashKey 가져옴
         getHashKey()
@@ -201,6 +206,24 @@ class MainActivity : AppCompatActivity() {
                 Log.e("KeyHash", "Unable to get MessageDigest. signature=" + signature, e)
             }
         }
+    }
+
+    //permission check
+    //출처 : https://github.com/ParkSangGwon/TedPermission
+    fun checkPermission() {
+        val permissionListener : PermissionListener = object : PermissionListener {
+            override fun onPermissionGranted() { //권한 있음
+                Toast.makeText(this@MainActivity, "권한 허용", Toast.LENGTH_SHORT).show()
+            }
+            override fun onPermissionDenied(deniedPermissions: MutableList<String>?) { //권한 없음
+                Toast.makeText(this@MainActivity, "권한 거부", Toast.LENGTH_SHORT).show()
+            }
+        }
+        TedPermission.with(this)
+            .setPermissionListener(permissionListener) //Listener set
+            .setDeniedMessage("권한을 허용하지 않으면 앱이 정상적으로 작동하지 않을 수 있습니다.") //DeniedMessage (Do not granted)
+            .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION) //Granted
+            .check()
     }
 
     //뒤로가기 두번 클릭하면 종료
