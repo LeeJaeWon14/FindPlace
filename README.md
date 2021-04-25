@@ -9,6 +9,6 @@
     3. Kakao Local API (예정)
 
 # Running Capture
-![image](https://user-images.githubusercontent.com/65227900/113901868-3f0f6300-980a-11eb-9353-ac7e37f31e5d.png)
+![image](https://user-images.githubusercontent.com/65227900/115984257-11cffc80-a5e1-11eb-8b7e-ba1376988b2b.png)
 
-![image](https://user-images.githubusercontent.com/65227900/113902144-8d246680-980a-11eb-8729-5bf29f55804a.png)
+![image](https://user-images.githubusercontent.com/65227900/115984293-3c21ba00-a5e1-11eb-95d9-b06362c866e6.png)
