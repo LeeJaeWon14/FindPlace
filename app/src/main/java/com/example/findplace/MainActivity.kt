@@ -3,6 +3,8 @@ package com.example.findplace
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -221,15 +223,62 @@ class MainActivity : AppCompatActivity() {
         val mapView = MapView(this@MainActivity)
         val mapViewContainer = dlgView.findViewById<ViewGroup>(R.id.mapViewL)
         val mapPoint = MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!)
+        //val markerEventListener =
 
         //마커 설정
-        val marker : MapPOIItem = MapPOIItem()
-        marker.itemName = "위치"
-        marker.tag = 0
-        marker.mapPoint = mapPoint
-        marker.markerType = MapPOIItem.MarkerType.BluePin
-        marker.selectedMarkerType = MapPOIItem.MarkerType.RedPin
+        val marker = MapPOIItem()
+        marker.apply {
+            itemName = "${photoInfoMap.get("location")}"
+            tag = 0
+            this.mapPoint = mapPoint
+            markerType = MapPOIItem.MarkerType.BluePin
+            selectedMarkerType = MapPOIItem.MarkerType.RedPin
+        }
         mapView.addPOIItem(marker)
+        //마커 이벤트 리스너 설정
+        mapView.setPOIItemEventListener(object : MapView.POIItemEventListener {
+            override fun onCalloutBalloonOfPOIItemTouched(p0: MapView?, p1: MapPOIItem?) {
+                // 말풍선 클릭 시(Deprecated)
+                TODO("Not yet implemented")
+            }
+
+            override fun onCalloutBalloonOfPOIItemTouched(
+                mapView: MapView?,
+                mapPOIItem: MapPOIItem?,
+                calloutBalloonButtonType: MapPOIItem.CalloutBalloonButtonType?
+            ) {
+                Log.v("Balloon", "Click")
+
+                // 말풍선 클릭 시
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setMessage("카카오맵으로 이동하시겠습니까?")
+                    .setPositiveButton("확인", object : DialogInterface.OnClickListener {
+                        override fun onClick(p0: DialogInterface?, p1: Int) {
+                            val urlScheme = "kakaomap://open?page=placeSearch"
+                            val intent = Intent()
+                            intent.apply {
+                                setAction(Intent.ACTION_VIEW)
+                                addCategory(Intent.CATEGORY_BROWSABLE)
+                                addCategory(Intent.CATEGORY_DEFAULT)
+                                setData(Uri.parse(urlScheme))
+                            }
+                            startActivity(intent)
+                        }
+                    })
+                    .setNegativeButton("취소", null)
+                    .show()
+            }
+
+            override fun onDraggablePOIItemMoved(p0: MapView?, p1: MapPOIItem?, p2: MapPoint?) {
+                // 마커의 isDraggable 속성이 true일 때 마커를 이동시켰을 경우우
+                TODO("Not yet implemented")
+            }
+
+            override fun onPOIItemSelected(p0: MapView?, p1: MapPOIItem?) {
+                // 마커 클릭 시
+                Toast.makeText(this@MainActivity, "Touch", Toast.LENGTH_SHORT).show()
+            }
+        })
 
         mapViewContainer.addView(mapView)
         mapView.isHDMapTileEnabled = true //카카오맵의 지도 타일을 고화질 타일로 변경
@@ -252,4 +301,6 @@ class MainActivity : AppCompatActivity() {
             this.finishAffinity()
         }
     }
+
+
 }
