@@ -3,7 +3,6 @@ package com.example.findplace
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -15,6 +14,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
@@ -46,6 +46,14 @@ class MainActivity : AppCompatActivity() {
         //HashKey 가져옴
         getHashKey()
 
+        when (intent.action) {
+            Intent.ACTION_SEND -> {
+                if("image/*" == intent.type) {
+                    handleSendImage(intent)
+                }
+            }
+        }
+
         image.setOnClickListener {
             val intent : Intent = Intent(Intent.ACTION_PICK)
             intent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
@@ -63,29 +71,7 @@ class MainActivity : AppCompatActivity() {
             data.let {
                 data?.data.let {
                     try {
-                        val selectedImageUri = data?.data!!
-                        image.setImageURI(selectedImageUri)
-                        val exif = ExifInterface(getAbsolutePath(selectedImageUri))
-
-                        //EXIF에 위치정보가 존재하지 않는 경우
-                        if(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
-                            viewLocationButton.visibility = View.INVISIBLE
-                            Toast.makeText(this@MainActivity, "위치 정보가 존재하지 않는 사진입니다.", Toast.LENGTH_SHORT).show()
-                            textMain.text = "No netadata"
-                            textMain.isClickable = false
-                        }
-                        //위치정보가 존재할 경우
-                        else {
-                            viewLocationButton.visibility = View.VISIBLE
-                            val degree = GeoDegree(exif)
-                            textMain.text = "상세정보"
-                            textMain.isClickable = true
-
-                            val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
-                            geoInfoMap.put("latitude", degree.getLatitude().toDouble())
-                            geoInfoMap.put("longitude", degree.getLongitude().toDouble())
-                            photoInfoMap = saveExifData(exif, address)
-                        }
+                        setImage(it!!)
 
                     } catch (e : Exception) {
                         Toast.makeText(this@MainActivity, "Result Error", Toast.LENGTH_SHORT).show()
@@ -288,6 +274,39 @@ class MainActivity : AppCompatActivity() {
         mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(geoInfoMap.get("latitude")!!, geoInfoMap.get("longitude")!!), true)
 
         dlg.show()
+    }
+
+    private fun handleSendImage(intent: Intent) {
+        //setImage(intent.data!!)
+        (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
+            // Update UI to reflect image being shared
+            setImage(it)
+        }
+    }
+
+    private fun setImage(uri: Uri) {
+        image.setImageURI(uri)
+        val exif = ExifInterface(getAbsolutePath(uri))
+
+        //EXIF에 위치정보가 존재하지 않는 경우
+        if(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
+            viewLocationButton.visibility = View.INVISIBLE
+            Toast.makeText(this@MainActivity, "위치 정보가 존재하지 않는 사진입니다.", Toast.LENGTH_SHORT).show()
+            textMain.text = "No metadata"
+            textMain.isClickable = false
+        }
+        //위치정보가 존재할 경우
+        else {
+            viewLocationButton.visibility = View.VISIBLE
+            val degree = GeoDegree(exif)
+            textMain.text = "상세정보"
+            textMain.isClickable = true
+
+            val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
+            geoInfoMap.put("latitude", degree.getLatitude().toDouble())
+            geoInfoMap.put("longitude", degree.getLongitude().toDouble())
+            photoInfoMap = saveExifData(exif, address)
+        }
     }
 
     //뒤로가기 두번 클릭하면 종료
