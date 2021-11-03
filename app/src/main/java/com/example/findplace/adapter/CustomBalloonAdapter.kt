@@ -1,4 +1,4 @@
-package com.example.findplace
+package com.example.findplace.adapter
 
 import android.content.Context
 import android.content.DialogInterface
@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.example.findplace.R
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.MapPOIItem
 

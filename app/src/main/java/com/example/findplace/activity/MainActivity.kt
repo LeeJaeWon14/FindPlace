@@ -1,9 +1,8 @@
-package com.example.findplace
+package com.example.findplace.activity
 
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -12,7 +11,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.media.ExifInterface
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
@@ -23,6 +21,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.findplace.MarkerEventListener
+import com.example.findplace.R
+import com.example.findplace.adapter.CustomBalloonAdapter
+import com.example.findplace.util.GeoDegree
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.TedPermission
 import kotlinx.android.synthetic.main.activity_main.*

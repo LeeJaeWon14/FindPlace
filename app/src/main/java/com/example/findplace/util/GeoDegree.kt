@@ -1,4 +1,4 @@
-package com.example.findplace
+package com.example.findplace.util
 
 import android.media.ExifInterface
 

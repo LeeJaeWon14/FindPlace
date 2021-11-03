@@ -24,7 +24,6 @@ class MarkerEventListener(val context: Context) : MapView.POIItemEventListener {
         calloutBalloonButtonType: MapPOIItem.CalloutBalloonButtonType?
     ) {
         Log.v("Balloon", "Click")
-/*
         // 말풍선 클릭 시
         AlertDialog.Builder(context)
             .setMessage("카카오맵으로 이동하시겠습니까?")
@@ -42,7 +41,7 @@ class MarkerEventListener(val context: Context) : MapView.POIItemEventListener {
                 }
             })
             .setNegativeButton("취소", null)
-            .show()*/
+            .show()
     }
 
     override fun onDraggablePOIItemMoved(p0: MapView?, p1: MapPOIItem?, p2: MapPoint?) {
