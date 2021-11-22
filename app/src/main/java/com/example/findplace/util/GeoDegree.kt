@@ -8,13 +8,13 @@ class GeoDegree(exif: ExifInterface) {
     private var longitude : Float = 0f
 
     init {
-        println("GeoDegree init!")
+        MyLogger.i("GeoDegree init!")
         val attrLATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE)
         val attrLATITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF)
         val attrLONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE)
         val attrLONGITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF)
 
-        println("${attrLATITUDE} / ${attrLATITUDE_REF} / ${attrLONGITUDE} / ${attrLONGITUDE_REF}")
+        MyLogger.i("$attrLATITUDE / $attrLATITUDE_REF}/ $attrLONGITUDE / $attrLONGITUDE_REF")
         if(attrLATITUDE != null && attrLATITUDE_REF != null && attrLONGITUDE != null && attrLONGITUDE_REF != null) {
             valid = true
 
@@ -63,12 +63,12 @@ class GeoDegree(exif: ExifInterface) {
     }
 
     fun getLatitude() : Float {
-        println("latitude >> " + latitude)
+        MyLogger.i("latitude >> $latitude")
         return latitude
     }
 
     fun getLongitude() : Float {
-        println("longitude >> " + longitude)
+        MyLogger.i("longitude >> $longitude")
         return longitude
     }
 }
