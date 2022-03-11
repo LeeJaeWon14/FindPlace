@@ -25,10 +25,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.findplace.MarkerEventListener
 import com.example.findplace.R
 import com.example.findplace.adapter.CustomBalloonAdapter
+import com.example.findplace.databinding.ActivityMainBinding
 import com.example.findplace.util.GeoDegree
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.TedPermission
-import kotlinx.android.synthetic.main.activity_main.*
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapView
@@ -36,13 +36,15 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
     private val GET_GALLERY_IMAGE : Int = 200
     private lateinit var photoInfoMap : HashMap<String, String>
     private val geoInfoMap : HashMap<String, Double> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         checkPermission()
 
@@ -57,14 +59,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        image.setOnClickListener {
-            val intent : Intent = Intent(Intent.ACTION_PICK)
-            intent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
-            startActivityForResult(intent, GET_GALLERY_IMAGE)
+        binding.apply {
+            image.setOnClickListener {
+                val intent : Intent = Intent(Intent.ACTION_PICK)
+                intent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+                startActivityForResult(intent, GET_GALLERY_IMAGE)
+            }
+            textMain.setOnClickListener(showDetailListener)
+            viewLocationButton.setOnClickListener(showKakaoMapListener)
         }
-
-        textMain.setOnClickListener(showDetailListener)
-        viewLocationButton.setOnClickListener(showKakaoMapListener)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -164,7 +167,7 @@ class MainActivity : AppCompatActivity() {
             .check()
     }
 
-    //메타데이텨가 존재할때 리스너
+    //메타데이터가 존재할때 리스너
     private val showDetailListener = View.OnClickListener {
         if((it as TextView).text.equals("아래를 클릭해서 사진을 등록하세요"))
             return@OnClickListener
@@ -188,12 +191,13 @@ class MainActivity : AppCompatActivity() {
 
         closeButton.setOnClickListener { dlg.dismiss() }
 
+        dlg.setCancelable(false)
         dlg.show()
     }
 
     //Kakao Map 호출 리스너
     private val showKakaoMapListener = View.OnClickListener {
-        if(textMain.text.equals("아래를 클릭해서 사진을 등록하세요")) {
+        if(binding.textMain.text.equals("아래를 클릭해서 사진을 등록하세요")) {
             Toast.makeText(this@MainActivity, "사진을 먼저 등록해주세요", Toast.LENGTH_SHORT).show()
             return@OnClickListener
         }
@@ -249,27 +253,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setImage(uri: Uri) {
-        image.setImageURI(uri)
-        val exif = ExifInterface(getAbsolutePath(uri))
+        binding.apply {
+            image.setImageURI(uri)
+            val exif = ExifInterface(getAbsolutePath(uri))
 
-        //EXIF에 위치정보가 존재하지 않는 경우
-        if(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
-            viewLocationButton.visibility = View.INVISIBLE
-            Toast.makeText(this@MainActivity, "위치 정보가 존재하지 않는 사진입니다.", Toast.LENGTH_SHORT).show()
-            textMain.text = "No metadata"
-            textMain.isClickable = false
-        }
-        //위치정보가 존재할 경우
-        else {
-            viewLocationButton.visibility = View.VISIBLE
-            val degree = GeoDegree(exif)
-            textMain.text = "상세정보"
-            textMain.isClickable = true
+            //EXIF에 위치정보가 존재하지 않는 경우
+            if(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
+                viewLocationButton.visibility = View.INVISIBLE
+                Toast.makeText(this@MainActivity, "위치 정보가 존재하지 않는 사진입니다.", Toast.LENGTH_SHORT).show()
+                textMain.text = "No metadata"
+                textMain.isClickable = false
+            }
+            //위치정보가 존재할 경우
+            else {
+                viewLocationButton.visibility = View.VISIBLE
+                val degree = GeoDegree(exif)
+                textMain.text = "상세정보"
+                textMain.isClickable = true
 
-            val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
-            geoInfoMap.put("latitude", degree.getLatitude().toDouble())
-            geoInfoMap.put("longitude", degree.getLongitude().toDouble())
-            photoInfoMap = saveExifData(exif, address)
+                val address = getAddress(degree.getLatitude().toDouble(), degree.getLongitude().toDouble())
+                geoInfoMap.put("latitude", degree.getLatitude().toDouble())
+                geoInfoMap.put("longitude", degree.getLongitude().toDouble())
+                photoInfoMap = saveExifData(exif, address)
+            }
         }
     }
 

@@ -55,7 +55,7 @@ class GeoDegree(exif: ExifInterface) {
 
         result = (FloatD + (FloatM/60) + (FloatS/3600)).toFloat()
 
-        return result!!
+        return result
     }
 
     fun isValid() : Boolean {
